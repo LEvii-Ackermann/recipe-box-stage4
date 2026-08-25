@@ -162,6 +162,7 @@ const App = () => {
   });
 
   const [editingRecipe, setEditingRecipe] = useState(null);
+  const [activeView, setActiveView] = useState("recipes");
 
   const [searchTerm, setSearchTerm] = useState('');
   const [tagFilter, setTagFilter] = useState(() => {
@@ -373,51 +374,76 @@ const App = () => {
       <Header averagePreparationTime={averagePreparationTime} />
 
       <main className="container">
+        <div className="view-switcher">
+            <button
+                type="button"
+                className={activeView === "recipes" ? "active" : ""}
+                onClick={() => setActiveView("recipes")}
+            >
+                My Recipe Box
+            </button>
 
-        <div className="dashboard-layout">
-
-          <aside className="dashboard-sidebar">
-            <Stats
-              totalRecipes={recipes.length}
-              averagePreparationTime={overallAveragePreparationTime}
-              mostUsedTag={mostUsedTag}
-              plannerFill={plannerFill}
-            />
-          </aside>
-
-          <AddRecipeForm
-            setRecipes={setRecipes}
-            editingRecipe={editingRecipe}
-            setEditingRecipe={setEditingRecipe}
-            tags={tags}
-            setTags={setTags}
-            renameTag={renameTag}
-            deleteTag={deleteTag}
-          />
-
-          <Planner
-            recipes={recipes}
-            planner={planner}
-            setPlanner={setPlanner}
-          />
-
+            <button
+                type="button"
+                className={activeView === "meals" ? "active" : ""}
+                onClick={() => setActiveView("meals")}
+            >
+                Discover Meals
+            </button>
         </div>
 
-        <SearchFilter
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          tagFilter={tagFilter}
-          setTagFilter={setTagFilter}
-          tags={tags}
-        />
+        {activeView === "recipes" ? (
+            <>
+                <div className="dashboard-layout">
 
-        <RecipeList
-          recipes={filteredRecipes}
-          totalRecipes={recipes.length}
-          onDeleteRecipe={deleteRecipe}
-          onEditRecipe={editRecipe}
-        />
+                    <aside className="dashboard-sidebar">
+                        <Stats
+                        totalRecipes={recipes.length}
+                        averagePreparationTime={overallAveragePreparationTime}
+                        mostUsedTag={mostUsedTag}
+                        plannerFill={plannerFill}
+                        />
+                    </aside>
 
+                    <AddRecipeForm
+                        setRecipes={setRecipes}
+                        editingRecipe={editingRecipe}
+                        setEditingRecipe={setEditingRecipe}
+                        tags={tags}
+                        setTags={setTags}
+                        renameTag={renameTag}
+                        deleteTag={deleteTag}
+                    />
+
+                    <Planner
+                        recipes={recipes}
+                        planner={planner}
+                        setPlanner={setPlanner}
+                    />
+
+                </div>
+
+                <SearchFilter
+                    searchTerm={searchTerm}
+                    setSearchTerm={setSearchTerm}
+                    tagFilter={tagFilter}
+                    setTagFilter={setTagFilter}
+                    tags={tags}
+                />
+
+                <RecipeList
+                    recipes={filteredRecipes}
+                    totalRecipes={recipes.length}
+                    onDeleteRecipe={deleteRecipe}
+                    onEditRecipe={editRecipe}
+                />
+            </>
+        ) : (
+            <section className="meal-discovery-placeholder">
+                <h2>Meal Discovery</h2>
+                <p>Search real meals from TheMealDB.</p>
+            </section>
+        )}       
       </main>
     </div>
   )

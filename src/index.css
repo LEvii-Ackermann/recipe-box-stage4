@@ -540,3 +540,36 @@ button:hover {
     height: 220px;
   }
 }
+
+.view-switcher {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.view-switcher button {
+  background: white;
+  color: #2e7d32;
+  border: 1px solid #2e7d32;
+}
+
+.view-switcher button.active {
+  background: #2e7d32;
+  color: white;
+}
+
+.meal-discovery-placeholder {
+  background: white;
+  border: 1px solid #dce5df;
+  border-radius: 10px;
+  padding: 30px;
+  margin-top: 20px;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.07);
+}
+
+.meal-discovery-placeholder h2 {
+  color: #2e7d32;
+  margin-bottom: 10px;
+}
