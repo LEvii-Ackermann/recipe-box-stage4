@@ -6,8 +6,9 @@ const MealDiscovery = () => {
   const [meals, setMeals] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);  
+  const [retryCount, setRetryCount] = useState(0);
 
-  const searchMeals = async (term) => {
+  const searchMeals = async (term, signal) => {
     if (!term.trim()) {
         setMeals([]);
         setError(null);
@@ -19,22 +20,37 @@ const MealDiscovery = () => {
     setError(null);
 
     try {
-        const results = await searchMealsByName(term);
+        const results = await searchMealsByName(term, signal);
         setMeals(results);
     } catch (error) {
+        if(error.name === "AbortError"){
+            return;
+        } 
+
         setError(error.message);
         setMeals([]);
     } finally {
-        setLoading(false);
+        if (!signal?.aborted) {
+            setLoading(false);
+        }
     }
   };
 
-  useEffect(() => {
-    searchMeals(searchTerm);
-  }, [searchTerm])
+    useEffect(() => {
+        const controller = new AbortController();
+
+        const timer = setTimeout(() => {
+            searchMeals(searchTerm, controller.signal);
+        }, 300);
+
+        return () => {
+            clearTimeout(timer);
+            controller.abort();
+        };
+    }, [searchTerm, retryCount]);
 
   const handleRetry = () => {
-    searchMeals(searchTerm)
+    setRetryCount((count) => count + 1)
   }
 
   return (
