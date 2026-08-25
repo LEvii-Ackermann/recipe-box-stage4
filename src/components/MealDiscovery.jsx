@@ -2,7 +2,10 @@ import React, {useEffect, useState} from 'react'
 import { searchMealsByName } from "../services/mealDb.js";
 
 const MealDiscovery = () => {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("mealSearch") || "";
+  });
   const [meals, setMeals] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);  
@@ -48,6 +51,24 @@ const MealDiscovery = () => {
             controller.abort();
         };
     }, [searchTerm, retryCount]);
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+
+        if (searchTerm.trim() === "") {
+            params.delete("mealSearch");
+        } else {
+            params.set("mealSearch", searchTerm);
+        }
+
+        const queryString = params.toString();
+
+        const newUrl = queryString
+            ? `${window.location.pathname}?${queryString}`
+            : window.location.pathname;
+
+        window.history.replaceState({}, "", newUrl);
+    }, [searchTerm]);
 
   const handleRetry = () => {
     setRetryCount((count) => count + 1)
