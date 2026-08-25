@@ -6,6 +6,7 @@ import RecipeList from './components/RecipeList.jsx'
 import SearchFilter from './components/SearchFilter.jsx'
 import Planner from './components/Planner.jsx'
 import Stats from './components/Stats.jsx'
+import MealDiscovery from './components/MealDiscovery.jsx'
 
 
 const migrateRecipes = (recipes) => {
@@ -439,10 +440,7 @@ const App = () => {
                 />
             </>
         ) : (
-            <section className="meal-discovery-placeholder">
-                <h2>Meal Discovery</h2>
-                <p>Search real meals from TheMealDB.</p>
-            </section>
+            <MealDiscovery />
         )}       
       </main>
     </div>
