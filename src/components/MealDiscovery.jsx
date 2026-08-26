@@ -32,6 +32,7 @@ const MealDiscovery = () => {
   const [mealDetailsError, setMealDetailsError] = useState(null);
   const [mealDetailsRetryCount, setMealDetailsRetryCount] = useState(0);
 
+  // Fetch meals based on search term
   const searchMeals = async (term, signal) => {
     if (!term.trim()) {
         setMeals([]);
@@ -60,6 +61,7 @@ const MealDiscovery = () => {
     }
   };
 
+  // Fetch categories
   const fetchCategories = async (signal) => {
     setCategoryLoading(true);
     setCategoryError(null);
@@ -81,6 +83,7 @@ const MealDiscovery = () => {
     }
   }
 
+  // Fetch meals based on selected category
   const fetchCategoryMeals = async (category, signal) => {
     if (!category.trim()) {
         setCategoryMeals([]);
@@ -109,6 +112,7 @@ const MealDiscovery = () => {
     }
   }
 
+  // Fetch meal details based on selected meal ID
   const fetchMealDetails = async (mealId, signal) => {
     if (!mealId.trim()) {
         setMealDetails(null);
@@ -137,6 +141,7 @@ const MealDiscovery = () => {
     }
   }
 
+  // Function to extract ingredients and measures from meal details
   const getIngredients = (meal) => {
     const ingredients = [];
 
@@ -155,6 +160,7 @@ const MealDiscovery = () => {
     return ingredients;
   };
 
+   // useEffect to handle meal search with debounce
     useEffect(() => {
         const controller = new AbortController();
 
@@ -168,6 +174,7 @@ const MealDiscovery = () => {
         };
     }, [searchTerm, retryCount]);
 
+    // useEffect to fetch categories
     useEffect(() => {
         const controller = new AbortController();
 
@@ -178,6 +185,7 @@ const MealDiscovery = () => {
         };
     }, [categoryRetryCount])
 
+    // useEffect to fetch meals based on selected category
     useEffect(() => {
         const controller = new AbortController();
 
@@ -188,6 +196,7 @@ const MealDiscovery = () => {
         };
     }, [selectedCategory, categoryMealsRetryCount]);
 
+    // useEffect to fetch meal details based on selected meal ID
     useEffect(() => {
         const controller = new AbortController();
 
@@ -196,8 +205,9 @@ const MealDiscovery = () => {
         return () => {
             controller.abort();
         }
-    }, [selectedMealId]);
+    }, [selectedMealId, mealDetailsRetryCount]);
 
+    // useEffect to update URL query parameters based on search term
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
 
@@ -216,6 +226,7 @@ const MealDiscovery = () => {
         window.history.replaceState({}, "", newUrl);
     }, [searchTerm]);
 
+    // useEffect to update URL query parameters based on selected category
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
 
