@@ -16,7 +16,10 @@ const MealDiscovery = () => {
   const [categoryError, setCategoryError] = useState(null);
   const [categoryRetryCount, setCategoryRetryCount] = useState(0);
 
-  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("mealCategory") || "";
+  });
 
   const [categoryMeals, setCategoryMeals] = useState([]);
   const [categoryMealsLoading, setCategoryMealsLoading] = useState(false);
@@ -151,6 +154,24 @@ const MealDiscovery = () => {
         window.history.replaceState({}, "", newUrl);
     }, [searchTerm]);
 
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+
+        if (selectedCategory.trim() === "") {
+            params.delete("mealCategory");
+        } else {
+            params.set("mealCategory", selectedCategory);
+        }
+
+        const queryString = params.toString();
+
+        const newUrl = queryString
+            ? `${window.location.pathname}?${queryString}`
+            : window.location.pathname;
+
+        window.history.replaceState({}, "", newUrl);
+    }, [selectedCategory]);
+
   const handleRetry = () => {
     setRetryCount((count) => count + 1)
   }
@@ -247,6 +268,7 @@ const MealDiscovery = () => {
                     <button
                         type="button"
                         key={category.idCategory}
+                        className={selectedCategory === category.strCategory ? "selected-category" : ""}
                         onClick={() => setSelectedCategory(category.strCategory)}
                     >
                         {category.strCategory}
