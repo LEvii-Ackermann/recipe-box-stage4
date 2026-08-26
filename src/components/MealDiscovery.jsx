@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react'
-import { searchMealsByName } from "../services/mealDb.js";
+import { searchMealsByName, getCategories } from "../services/mealDb.js";
 
 const MealDiscovery = () => {
   const [searchTerm, setSearchTerm] = useState(() => {
@@ -10,6 +10,11 @@ const MealDiscovery = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);  
   const [retryCount, setRetryCount] = useState(0);
+
+  const [categories, setCategories] = useState([]);
+  const [categoryLoading, setCategoryLoading] = useState(false);
+  const [categoryError, setCategoryError] = useState(null);
+  const [categoryRetryCount, setCategoryRetryCount] = useState(0);
 
   const searchMeals = async (term, signal) => {
     if (!term.trim()) {
@@ -39,6 +44,27 @@ const MealDiscovery = () => {
     }
   };
 
+  const fetchCategories = async (signal) => {
+    setCategoryLoading(true);
+    setCategoryError(null);
+
+    try {
+        const results = await getCategories(signal);
+        setCategories(results);
+    } catch (error) {
+        if(error.name === "AbortError"){
+            return;
+        }
+
+        setCategoryError(error.message);
+        setCategories([]);
+    } finally {
+        if (!signal?.aborted) {
+            setCategoryLoading(false);
+        }
+    }
+  }
+
     useEffect(() => {
         const controller = new AbortController();
 
@@ -51,6 +77,16 @@ const MealDiscovery = () => {
             controller.abort();
         };
     }, [searchTerm, retryCount]);
+
+    useEffect(() => {
+        const controller = new AbortController();
+
+        fetchCategories(controller.signal);
+
+        return () => {
+            controller.abort();
+        };
+    }, [categoryRetryCount])
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -131,6 +167,48 @@ const MealDiscovery = () => {
                 <p>Search for a meal to get started.</p>
             </div>
         )}
+
+
+        {categoryLoading && (
+            <div className="meal-state">
+                <p>Loading categories...</p>
+            </div>
+        )}
+
+        {!categoryLoading && categoryError && (
+            <div className="meal-state meal-error">
+                <p>Unable to load categories. Please try again.</p>
+                <button 
+                    type="button" 
+                    onClick={() => setCategoryRetryCount((count) => count + 1)}
+                >
+                    Retry
+                </button>
+            </div>
+        )}
+
+        {!categoryLoading && !categoryError && categories.length === 0 && (
+            <div className="meal-state meal-empty">
+                <p>No categories found.</p>
+            </div>
+        )}
+
+        {!categoryLoading && !categoryError && categories.length > 0 && (
+            <div className="meal-categories">
+                <h3>Browse by Category</h3>
+
+                <div className="category-list">
+                {categories.map((category) => (
+                    <button
+                        type="button"
+                        key={category.idCategory}
+                    >
+                        {category.strCategory}
+                    </button>
+                ))}
+                </div>
+            </div>
+        )}    
     </section>
   )
 }
