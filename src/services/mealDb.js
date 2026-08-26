@@ -62,3 +62,27 @@ export const getMealsByCategory = async (category, signal) => {
 
     return data.meals;
 }
+
+
+export const getMealById = async (mealId, signal) => {
+    const query = encodeURIComponent(mealId);
+
+    const response = await fetch(
+        `${MEAL_DB_BASE_URL}/lookup.php?i=${query}`,
+        {
+            signal: signal
+        }
+    );
+
+    if (!response.ok) {
+        throw new Error("Failed to fetch meal details");
+    }
+
+    const data = await response.json();
+
+    if (data.meals === null || data.meals === undefined) {
+        return null;
+    }
+
+    return data.meals[0] || null;
+};

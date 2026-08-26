@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react'
-import { searchMealsByName, getCategories, getMealsByCategory } from "../services/mealDb.js";
+import { searchMealsByName, getCategories, getMealsByCategory, getMealById } from "../services/mealDb.js";
 
 const MealDiscovery = () => {
   const [searchTerm, setSearchTerm] = useState(() => {
@@ -25,6 +25,12 @@ const MealDiscovery = () => {
   const [categoryMealsLoading, setCategoryMealsLoading] = useState(false);
   const [categoryMealsError, setCategoryMealsError] = useState(null);
   const [categoryMealsRetryCount, setCategoryMealsRetryCount] = useState(0);
+
+  const [selectedMealId, setSelectedMealId] = useState("");
+  const [mealDetails, setMealDetails] = useState(null);
+  const [mealDetailsLoading, setMealDetailsLoading] = useState(false);
+  const [mealDetailsError, setMealDetailsError] = useState(null);
+  const [mealDetailsRetryCount, setMealDetailsRetryCount] = useState(0);
 
   const searchMeals = async (term, signal) => {
     if (!term.trim()) {
@@ -103,6 +109,52 @@ const MealDiscovery = () => {
     }
   }
 
+  const fetchMealDetails = async (mealId, signal) => {
+    if (!mealId.trim()) {
+        setMealDetails(null);
+        setMealDetailsError(null);
+        setMealDetailsLoading(false);
+        return;
+    }
+
+    setMealDetailsLoading(true);
+    setMealDetailsError(null);
+
+    try {
+        const result = await getMealById(mealId, signal);
+        setMealDetails(result);
+    } catch (error) {
+        if(error.name === "AbortError"){
+            return;
+        }
+
+        setMealDetailsError(error.message);
+        setMealDetails(null);
+    } finally {
+        if (!signal?.aborted) {
+            setMealDetailsLoading(false);
+        }
+    }
+  }
+
+  const getIngredients = (meal) => {
+    const ingredients = [];
+
+    for (let i = 1; i <= 20; i++) {
+        const ingredient = meal[`strIngredient${i}`]?.trim();
+        const measure = meal[`strMeasure${i}`]?.trim();
+
+        if (ingredient) {
+            ingredients.push({
+                ingredient,
+                measure
+            });
+        }
+    }
+
+    return ingredients;
+  };
+
     useEffect(() => {
         const controller = new AbortController();
 
@@ -135,6 +187,16 @@ const MealDiscovery = () => {
             controller.abort();
         };
     }, [selectedCategory, categoryMealsRetryCount]);
+
+    useEffect(() => {
+        const controller = new AbortController();
+
+        fetchMealDetails(selectedMealId, controller.signal);
+
+        return () => {
+            controller.abort();
+        }
+    }, [selectedMealId]);
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -219,7 +281,11 @@ const MealDiscovery = () => {
         {!loading && !error && meals.length > 0 && (
             <div className='meal-results'>
                 {meals.map((meal) => (
-                    <article className='meal-card' key={meal.idMeal}>
+                    <article 
+                        className='meal-card' 
+                        key={meal.idMeal}
+                        onClick={() => setSelectedMealId(meal.idMeal)}
+                    >
                         <h3>{meal.strMeal}</h3>
                         <p>{meal.strCategory}</p>
                         <p>{meal.strArea}</p>
@@ -307,10 +373,119 @@ const MealDiscovery = () => {
                 <h3>Meals in "{selectedCategory}" Category</h3>
                 <div className="meal-results">
                     {categoryMeals.map((meal) => (
-                        <article className="meal-card" key={meal.idMeal}>
+                        <article 
+                            className="meal-card" 
+                            key={meal.idMeal}
+                            onClick={() => setSelectedMealId(meal.idMeal)}
+                        >
                             <h3>{meal.strMeal}</h3>
                         </article>
                     ))}
+                </div>
+            </div>
+        )}
+
+        {mealDetailsLoading && selectedMealId && (
+            <div className="meal-details-overlay">
+                <div className="meal-details-modal">
+                    <p>Loading meal details...</p>
+                </div>
+            </div>
+        )}
+
+        {!mealDetailsLoading && mealDetailsError && selectedMealId && (
+            <div className="meal-details-overlay">
+                <div className="meal-details-modal meal-error">
+                    <button
+                        type="button"
+                        className="meal-details-close"
+                        onClick={() => setSelectedMealId("")}
+                    >
+                        ×
+                    </button>
+
+                    <p>Unable to load meal details. Please try again.</p>
+
+                    <button
+                        type="button"
+                        onClick={() =>
+                            setMealDetailsRetryCount((count) => count + 1)
+                        }
+                    >
+                        Retry
+                    </button>
+                </div>
+            </div>
+        )}
+
+        {!mealDetailsLoading && !mealDetailsError && mealDetails && (
+            <div className="meal-details-overlay">
+                <div className="meal-details-modal">
+
+                    <button
+                        type="button"
+                        className="meal-details-close"
+                        onClick={() => setSelectedMealId("")}
+                    >
+                        ×
+                    </button>
+
+                    <h3>{mealDetails.strMeal}</h3>
+                    {mealDetails.strMealThumb && (
+                        <img
+                            className="meal-details-image"
+                            src={mealDetails.strMealThumb}
+                            alt={mealDetails.strMeal}
+                        />
+                    )}
+
+                    <p>
+                        <strong>Category:</strong> {mealDetails.strCategory}
+                    </p>
+
+                    <p>
+                        <strong>Area:</strong> {mealDetails.strArea}
+                    </p>
+
+                    <h4>Ingredients</h4>
+
+                    <ul className="meal-ingredients">
+                        {getIngredients(mealDetails).map((item) => (
+                            <li key={item.ingredient}>
+                                <span>{item.ingredient}</span>
+                                <span>{item.measure}</span>
+                            </li>
+                        ))}
+                    </ul>
+
+                    <h4>Instructions</h4>
+
+                    <p className="meal-instructions">
+                        {mealDetails.strInstructions}
+                    </p>
+
+                    <div className="meal-details-links">
+                        {mealDetails.strYoutube && (
+                            <a
+                                href={mealDetails.strYoutube}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                Watch on YouTube
+                            </a>
+                        )}
+
+                        {mealDetails.strSource && (
+                            <a
+                                href={mealDetails.strSource}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                View Original Recipe
+                            </a>
+                        )}
+                    </div>
+
                 </div>
             </div>
         )}
