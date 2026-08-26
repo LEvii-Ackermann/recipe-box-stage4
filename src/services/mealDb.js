@@ -20,3 +20,23 @@ export const searchMealsByName = async (searchTerm, signal) => {
 
     return data.meals;
 }
+
+
+export const getCategories = async (signal) => {
+    const response = await fetch(
+        `${MEAL_DB_BASE_URL}/categories.php`, {
+            signal: signal
+        }
+    )
+
+    if(!response.ok) {
+        throw new Error("Failed to fetch categories");
+    }
+
+    const data = await response.json();
+    if(data.categories === null || data.categories === undefined){
+        return []
+    }
+
+    return data.categories;
+}
