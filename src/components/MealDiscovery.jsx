@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react'
-import { searchMealsByName, getCategories } from "../services/mealDb.js";
+import { searchMealsByName, getCategories, getMealsByCategory } from "../services/mealDb.js";
 
 const MealDiscovery = () => {
   const [searchTerm, setSearchTerm] = useState(() => {
@@ -15,6 +15,13 @@ const MealDiscovery = () => {
   const [categoryLoading, setCategoryLoading] = useState(false);
   const [categoryError, setCategoryError] = useState(null);
   const [categoryRetryCount, setCategoryRetryCount] = useState(0);
+
+  const [selectedCategory, setSelectedCategory] = useState("");
+
+  const [categoryMeals, setCategoryMeals] = useState([]);
+  const [categoryMealsLoading, setCategoryMealsLoading] = useState(false);
+  const [categoryMealsError, setCategoryMealsError] = useState(null);
+  const [categoryMealsRetryCount, setCategoryMealsRetryCount] = useState(0);
 
   const searchMeals = async (term, signal) => {
     if (!term.trim()) {
@@ -65,6 +72,34 @@ const MealDiscovery = () => {
     }
   }
 
+  const fetchCategoryMeals = async (category, signal) => {
+    if (!category.trim()) {
+        setCategoryMeals([]);
+        setCategoryMealsError(null);
+        setCategoryMealsLoading(false);
+        return;
+    }
+
+    setCategoryMealsLoading(true);
+    setCategoryMealsError(null);
+
+    try {
+        const results = await getMealsByCategory(category, signal);
+        setCategoryMeals(results);
+    } catch (error) {
+        if(error.name === "AbortError"){
+            return;
+        }
+
+        setCategoryMealsError(error.message);
+        setCategoryMeals([]);
+    } finally {
+        if (!signal?.aborted) {
+            setCategoryMealsLoading(false);
+        }
+    }
+  }
+
     useEffect(() => {
         const controller = new AbortController();
 
@@ -87,6 +122,16 @@ const MealDiscovery = () => {
             controller.abort();
         };
     }, [categoryRetryCount])
+
+    useEffect(() => {
+        const controller = new AbortController();
+
+        fetchCategoryMeals(selectedCategory, controller.signal);
+
+        return () => {
+            controller.abort();
+        };
+    }, [selectedCategory, categoryMealsRetryCount]);
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -202,13 +247,51 @@ const MealDiscovery = () => {
                     <button
                         type="button"
                         key={category.idCategory}
+                        onClick={() => setSelectedCategory(category.strCategory)}
                     >
                         {category.strCategory}
                     </button>
                 ))}
                 </div>
             </div>
-        )}    
+        )}
+        
+        {categoryMealsLoading && (
+            <div className="meal-state">
+                <p>Loading meals for category "{selectedCategory}"...</p>
+            </div>
+        )}
+
+        {!categoryMealsLoading && categoryMealsError && (
+            <div className="meal-state meal-error">
+                <p>Unable to load meals for category "{selectedCategory}". Please try again.</p>
+                <button
+                    type="button"
+                    onClick={() => setCategoryMealsRetryCount((count) => count + 1)}
+                >
+                    Retry
+                </button>
+            </div>
+        )}
+
+        {!categoryMealsLoading && !categoryMealsError && selectedCategory && categoryMeals.length === 0 && (
+            <div className="meal-state meal-empty">
+                <p>No meals found for category "{selectedCategory}".</p>
+            </div>
+        )}
+
+        {!categoryMealsLoading && !categoryMealsError && selectedCategory && categoryMeals.length > 0 && (
+            <div className="category-meals">
+                <h3>Meals in "{selectedCategory}" Category</h3>
+                <div className="meal-results">
+                    {categoryMeals.map((meal) => (
+                        <article className="meal-card" key={meal.idMeal}>
+                            <h3>{meal.strMeal}</h3>
+                        </article>
+                    ))}
+                </div>
+            </div>
+        )}
     </section>
   )
 }

@@ -40,3 +40,25 @@ export const getCategories = async (signal) => {
 
     return data.categories;
 }
+
+
+export const getMealsByCategory = async (category, signal) => {
+    const query = encodeURIComponent(category.trim());
+
+    const response = await fetch(
+        `${MEAL_DB_BASE_URL}/filter.php?c=${query}`, {
+            signal: signal
+        }
+    )
+
+    if(!response.ok) {
+        throw new Error("Failed to fetch meals by category");
+    }
+
+    const data = await response.json();
+    if(data.meals === null || data.meals === undefined) {
+        return [];
+    }
+
+    return data.meals;
+}
