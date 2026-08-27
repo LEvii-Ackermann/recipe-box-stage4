@@ -34,6 +34,11 @@ const MealDiscovery = ({ setRecipes, setTags }) => {
 
   const [importedMealId, setImportedMealId] = useState("");
 
+  const [searchPage, setSearchPage] = useState(1);
+  const [categoryPage, setCategoryPage] = useState(1);
+
+  const MEALS_PER_PAGE = 6;
+
   // Fetch meals based on search term
   const searchMeals = async (term, signal) => {
     if (!term.trim()) {
@@ -197,6 +202,27 @@ const MealDiscovery = ({ setRecipes, setTags }) => {
     setImportedMealId(mealDetails.idMeal);
   };
 
+
+  const searchStartIndex = (searchPage - 1) * MEALS_PER_PAGE;
+  const searchEndIndex = searchStartIndex + MEALS_PER_PAGE;
+
+  const visibleSearchMeals = meals.slice(searchStartIndex, searchEndIndex);
+
+  const searchTotalPages = Math.ceil(meals.length / MEALS_PER_PAGE);
+
+
+  const categoryStartIndex = (categoryPage - 1) * MEALS_PER_PAGE;
+
+  const visibleCategoryMeals = categoryMeals.slice(
+    categoryStartIndex,
+    categoryStartIndex + MEALS_PER_PAGE
+  );
+
+  const categoryTotalPages = Math.ceil(
+    categoryMeals.length / MEALS_PER_PAGE
+  );
+
+
    // useEffect to handle meal search with debounce
     useEffect(() => {
         const controller = new AbortController();
@@ -210,6 +236,11 @@ const MealDiscovery = ({ setRecipes, setTags }) => {
             controller.abort();
         };
     }, [searchTerm, retryCount]);
+
+    // Reset search page when search term changes
+    useEffect(() => {
+        setSearchPage(1);
+    }, [searchTerm]);
 
     // useEffect to fetch categories
     useEffect(() => {
@@ -232,6 +263,11 @@ const MealDiscovery = ({ setRecipes, setTags }) => {
             controller.abort();
         };
     }, [selectedCategory, categoryMealsRetryCount]);
+
+    // Reset category page when selected category changes
+    useEffect(() => {
+        setCategoryPage(1);
+    }, [selectedCategory]);
 
     // useEffect to fetch meal details based on selected meal ID
     useEffect(() => {
@@ -327,19 +363,45 @@ const MealDiscovery = ({ setRecipes, setTags }) => {
         )}
 
         {!loading && !error && meals.length > 0 && (
-            <div className='meal-results'>
-                {meals.map((meal) => (
-                    <article 
-                        className='meal-card' 
-                        key={meal.idMeal}
-                        onClick={() => setSelectedMealId(meal.idMeal)}
-                    >
-                        <h3>{meal.strMeal}</h3>
-                        <p>{meal.strCategory}</p>
-                        <p>{meal.strArea}</p>
-                    </article>
-                ))}
-            </div>
+            <>
+                <div className='meal-results'>
+                    {visibleSearchMeals.map((meal) => (
+                        <article 
+                            className='meal-card' 
+                            key={meal.idMeal}
+                            onClick={() => setSelectedMealId(meal.idMeal)}
+                        >
+                            <h3>{meal.strMeal}</h3>
+                            <p>{meal.strCategory}</p>
+                            <p>{meal.strArea}</p>
+                        </article>
+                    ))}
+                </div>
+
+                {searchTotalPages > 1 && (
+                    <div className="meal-pagination">
+                        <button
+                            type="button"
+                            disabled={searchPage === 1}
+                            onClick={() => setSearchPage((page) => page - 1)}
+                        >
+                            Previous
+                        </button>
+
+                        <span>
+                            Page {searchPage} of {searchTotalPages}
+                        </span>
+
+                        <button
+                            type="button"
+                            disabled={searchPage === searchTotalPages}
+                            onClick={() => setSearchPage((page) => page + 1)}
+                        >
+                            Next
+                        </button>
+                    </div>
+                )}
+            </>                
         )}
 
         {!loading && !error && !searchTerm.trim() && (
@@ -347,6 +409,8 @@ const MealDiscovery = ({ setRecipes, setTags }) => {
                 <p>Search for a meal to get started.</p>
             </div>
         )}
+
+
 
 
         {categoryLoading && (
@@ -417,20 +481,45 @@ const MealDiscovery = ({ setRecipes, setTags }) => {
         )}
 
         {!categoryMealsLoading && !categoryMealsError && selectedCategory && categoryMeals.length > 0 && (
-            <div className="category-meals">
-                <h3>Meals in "{selectedCategory}" Category</h3>
-                <div className="meal-results">
-                    {categoryMeals.map((meal) => (
-                        <article 
-                            className="meal-card" 
-                            key={meal.idMeal}
-                            onClick={() => setSelectedMealId(meal.idMeal)}
-                        >
-                            <h3>{meal.strMeal}</h3>
-                        </article>
-                    ))}
+            <>
+                <div className="category-meals">
+                    <h3>Meals in "{selectedCategory}" Category</h3>
+                    <div className="meal-results">
+                        {visibleCategoryMeals.map((meal) => (
+                            <article 
+                                className="meal-card" 
+                                key={meal.idMeal}
+                                onClick={() => setSelectedMealId(meal.idMeal)}
+                            >
+                                <h3>{meal.strMeal}</h3>
+                            </article>
+                        ))}
+                    </div>
                 </div>
-            </div>
+                {categoryTotalPages > 1 && (
+                    <div className="meal-pagination">
+                        <button
+                            type="button"
+                            disabled={categoryPage === 1}
+                            onClick={() => setCategoryPage((page) => page - 1)}
+                        >
+                            Previous
+                        </button>
+
+                        <span>
+                            Page {categoryPage} of {categoryTotalPages}
+                        </span>
+
+                        <button
+                            type="button"
+                            disabled={categoryPage === categoryTotalPages}
+                            onClick={() => setCategoryPage((page) => page + 1)}
+                        >
+                            Next
+                        </button>
+                    </div>
+                )}                
+            </>    
         )}
 
         {mealDetailsLoading && selectedMealId && (

@@ -859,3 +859,30 @@ button:hover {
   font-weight: 600;
   margin: -8px 0 12px;
 }
+
+.meal-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.meal-pagination button {
+  background: #1976d2;
+  color: white;
+  padding: 8px 14px;
+}
+
+.meal-pagination button:disabled {
+  background: #ccc;
+  color: #666;
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+.meal-pagination span {
+  font-size: 14px;
+  color: #555;
+  font-weight: 600;
+}
