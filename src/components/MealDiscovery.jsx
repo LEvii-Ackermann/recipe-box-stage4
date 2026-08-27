@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react'
 import { searchMealsByName, getCategories, getMealsByCategory, getMealById } from "../services/mealDb.js";
+import { getIngredients } from "../utils/getIngredients.js";
 
 const MealDiscovery = ({ setRecipes, setTags }) => {
   const [searchTerm, setSearchTerm] = useState(() => {
@@ -147,25 +148,6 @@ const MealDiscovery = ({ setRecipes, setTags }) => {
         }
     }
   }
-
-  // Function to extract ingredients and measures from meal details
-  const getIngredients = (meal) => {
-    const ingredients = [];
-
-    for (let i = 1; i <= 20; i++) {
-        const ingredient = meal[`strIngredient${i}`]?.trim();
-        const measure = meal[`strMeasure${i}`]?.trim();
-
-        if (ingredient) {
-            ingredients.push({
-                ingredient,
-                measure
-            });
-        }
-    }
-
-    return ingredients;
-  };
 
   // Function to handle importing a meal
   const handleImport = () => {
