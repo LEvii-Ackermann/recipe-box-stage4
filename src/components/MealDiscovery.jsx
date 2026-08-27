@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react'
 import { searchMealsByName, getCategories, getMealsByCategory, getMealById } from "../services/mealDb.js";
 
-const MealDiscovery = () => {
+const MealDiscovery = ({ setRecipes, setTags }) => {
   const [searchTerm, setSearchTerm] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get("mealSearch") || "";
@@ -31,6 +31,8 @@ const MealDiscovery = () => {
   const [mealDetailsLoading, setMealDetailsLoading] = useState(false);
   const [mealDetailsError, setMealDetailsError] = useState(null);
   const [mealDetailsRetryCount, setMealDetailsRetryCount] = useState(0);
+
+  const [importedMealId, setImportedMealId] = useState("");
 
   // Fetch meals based on search term
   const searchMeals = async (term, signal) => {
@@ -158,6 +160,41 @@ const MealDiscovery = () => {
     }
 
     return ingredients;
+  };
+
+  // Function to handle importing a meal
+  const handleImport = () => {
+    if (!mealDetails) {
+        return;
+    }
+
+    const ingredients = getIngredients(mealDetails).map(
+        (item) => `${item.measure} ${item.ingredient}`.trim()
+    );
+
+    const importedRecipe = {
+        id: Date.now() + Math.random(),
+        title: mealDetails.strMeal.trim(),
+        ingredients,
+        prepTime: 0,
+        servings: 1,
+        tags: ["imported"],
+    };
+
+    setRecipes((prevRecipes) => [
+        ...prevRecipes,
+        importedRecipe,
+    ]);
+
+    setTags((prevTags) => {
+        if (prevTags.includes("imported")) {
+            return prevTags;
+        }
+
+        return [...prevTags, "imported"];
+    });
+
+    setImportedMealId(mealDetails.idMeal);
   };
 
    // useEffect to handle meal search with debounce
@@ -442,6 +479,20 @@ const MealDiscovery = () => {
                     </button>
 
                     <h3>{mealDetails.strMeal}</h3>
+                    <button
+                        type="button"
+                        className="import-meal-btn"
+                        onClick={handleImport}
+                    >
+                        Import to my box
+                    </button>
+
+                    {importedMealId === mealDetails.idMeal && (
+                        <p className="import-success">
+                            Recipe imported successfully!
+                        </p>
+                    )}
+
                     {mealDetails.strMealThumb && (
                         <img
                             className="meal-details-image"

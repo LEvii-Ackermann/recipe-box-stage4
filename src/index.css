@@ -831,3 +831,31 @@ button:hover {
 .meal-details-links a:hover {
     opacity: 0.9;
 }
+
+.import-meal-btn {
+  background: #1976d2;
+  color: white;
+  margin: 12px 0 16px;
+  padding: 10px 16px;
+}
+
+.import-meal-btn:hover {
+  opacity: 0.9;
+}
+
+.import-meal-btn.imported {
+  background: #2e7d32;
+  cursor: default;
+  opacity: 1;
+}
+
+.import-meal-btn:disabled {
+  cursor: default;
+}
+
+.import-success {
+  color: #2e7d32;
+  font-size: 14px;
+  font-weight: 600;
+  margin: -8px 0 12px;
+}

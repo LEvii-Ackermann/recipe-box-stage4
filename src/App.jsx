@@ -440,7 +440,10 @@ const App = () => {
                 />
             </>
         ) : (
-            <MealDiscovery />
+            <MealDiscovery 
+              setRecipes={setRecipes} 
+              setTags={setTags} 
+            />
         )}       
       </main>
     </div>
