@@ -17,7 +17,7 @@ describe("getIngredients", () => {
             strMeasure4: "2 tbsp",
 
             strIngredient5: "Pepper",
-            strMeasure5: " ",
+            strMeasure5: null,
         };
 
         const result = getIngredients(meal);
