@@ -124,4 +124,88 @@ describe("MealDiscovery search", () => {
             ).not.toBeInTheDocument();
         });
     });
+
+    it("imports a MealDB meal into the local recipe box", async () => {
+        const setRecipes = vi.fn();
+        const setTags = vi.fn();
+
+        mealDb.getCategories.mockResolvedValue([]);
+        
+        mealDb.searchMealsByName.mockResolvedValue([
+            {
+                idMeal: "123",
+                strMeal: "Chicken Curry",
+                strCategory: "Chicken",
+                strArea: "Indian",
+            }
+        ]);
+
+        mealDb.getMealById.mockResolvedValue({
+            idMeal: "123",
+            strMeal: "Chicken Curry",
+            strIngredient1: "Chicken",
+            strMeasure1: "500g",
+            strIngredient2: "Salt",
+            strMeasure2: "1 tsp"
+        });
+
+        render(
+            <MealDiscovery
+                setRecipes={setRecipes}
+                setTags={setTags}
+            />
+        );
+
+        const searchInput = screen.getByLabelText(
+            "Search meals by name:"
+        );
+
+        fireEvent.change(searchInput, {
+            target: { value: "chicken" }
+        });
+
+        await waitFor(() => {
+            expect(
+                screen.getByText("Chicken Curry")
+            ).toBeInTheDocument();
+        })
+
+        fireEvent.click(
+            screen.getByText("Chicken Curry")
+        );
+
+        await waitFor(() => {
+            expect(
+                screen.getByRole("button", {
+                    name: "Import to my box"
+                })
+            ).toBeInTheDocument();
+        });
+
+        fireEvent.click(
+            screen.getByRole("button", {
+                name: "Import to my box"
+            })
+        );
+
+        const updateRecipes = setRecipes.mock.calls[0][0];
+
+        const updatedRecipes = updateRecipes([]);
+
+        expect(updatedRecipes).toHaveLength(1);
+        expect(updatedRecipes[0]).toMatchObject({
+            title: "Chicken Curry",
+            ingredients: [
+                "500g Chicken",
+                "1 tsp Salt"
+            ],
+            prepTime: 30,
+            servings: 1,
+            tags: ["imported"]
+        });
+
+        expect(setTags).toHaveBeenCalledWith(
+            expect.any(Function)
+        );
+    })
 });

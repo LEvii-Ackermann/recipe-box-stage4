@@ -176,7 +176,7 @@ const MealDiscovery = ({ setRecipes, setTags }) => {
         id: Date.now() + Math.random(),
         title: mealDetails.strMeal.trim(),
         ingredients,
-        prepTime: 0,
+        prepTime: 30,
         servings: 1,
         tags: ["imported"],
     };
