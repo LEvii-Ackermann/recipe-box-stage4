@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react'
+import React, {useEffect, useState, useRef } from 'react'
 import { searchMealsByName, getCategories, getMealsByCategory, getMealById } from "../services/mealDb.js";
 import { getIngredients } from "../utils/getIngredients.js";
 
@@ -40,8 +40,12 @@ const MealDiscovery = ({ setRecipes, setTags }) => {
 
   const MEALS_PER_PAGE = 6;
 
+  const activeSearchId = useRef(0);
+
   // Fetch meals based on search term
   const searchMeals = async (term, signal) => {
+    const requestId = ++activeSearchId.current;
+
     if (!term.trim()) {
         setMeals([]);
         setError(null);
@@ -54,16 +58,25 @@ const MealDiscovery = ({ setRecipes, setTags }) => {
 
     try {
         const results = await searchMealsByName(term, signal);
+
+        if (requestId !== activeSearchId.current) {
+            return;
+        }
+
         setMeals(results);
     } catch (error) {
         if(error.name === "AbortError"){
             return;
         } 
 
+        if (requestId !== activeSearchId.current) {
+            return;
+        }
+
         setError(error.message);
         setMeals([]);
     } finally {
-        if (!signal?.aborted) {
+        if (!signal?.aborted && requestId === activeSearchId.current) {
             setLoading(false);
         }
     }
