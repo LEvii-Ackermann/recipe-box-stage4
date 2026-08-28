@@ -550,6 +550,26 @@ const MealDiscovery = ({ setRecipes, setTags }) => {
             </div>
         )}
 
+        {!mealDetailsLoading && !mealDetailsError && !mealDetails && selectedMealId && (
+            <div className="meal-details-overlay">
+                <div className="meal-details-modal meal-empty">
+
+                    <button
+                        type="button"
+                        className="meal-details-close"
+                        onClick={() => setSelectedMealId("")}
+                    >
+                        ×
+                    </button>
+
+                    <p>
+                        Meal details not found. Please try another meal.
+                    </p>
+
+                </div>
+            </div>
+        )}        
+
         {!mealDetailsLoading && !mealDetailsError && mealDetails && (
             <div className="meal-details-overlay">
                 <div className="meal-details-modal">
