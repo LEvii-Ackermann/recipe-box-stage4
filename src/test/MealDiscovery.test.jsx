@@ -208,4 +208,61 @@ describe("MealDiscovery search", () => {
             expect.any(Function)
         );
     })
+
+    it("ignores an older response during the debounce window", async () => {
+        vi.useFakeTimers();
+
+        let resolveChicken;
+
+        mealDb.getCategories.mockResolvedValue([]);
+
+        mealDb.searchMealsByName.mockImplementation(
+            () =>
+                new Promise((resolve) => {
+                    resolveChicken = resolve;
+                })
+        );
+
+        render(
+            <MealDiscovery
+                setRecipes={vi.fn()}
+                setTags={vi.fn()}
+            />
+        );
+
+        const searchInput = screen.getByLabelText(
+            "Search meals by name:"
+        );
+
+        fireEvent.change(searchInput, {
+            target: { value: "chicken" }
+        });
+
+        await act(async () => {
+            vi.advanceTimersByTime(300);
+        });
+
+        fireEvent.change(searchInput, {
+            target: { value: "beef" }
+        });
+
+        resolveChicken([
+            {
+                idMeal: "1",
+                strMeal: "Chicken Curry",
+                strCategory: "Chicken",
+                strArea: "Indian"
+            }
+        ]);
+
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        expect(
+            screen.queryByText("Chicken Curry")
+        ).not.toBeInTheDocument();
+
+        vi.useRealTimers();
+    });    
 });
