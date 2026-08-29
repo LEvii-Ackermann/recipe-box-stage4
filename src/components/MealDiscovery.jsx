@@ -43,8 +43,7 @@ const MealDiscovery = ({ setRecipes, setTags }) => {
   const activeSearchId = useRef(0);
 
   // Fetch meals based on search term
-  const searchMeals = async (term, signal) => {
-    const requestId = ++activeSearchId.current;
+  const searchMeals = async (term, signal, requestId) => {
 
     if (!term.trim()) {
         setMeals([]);
@@ -222,8 +221,10 @@ const MealDiscovery = ({ setRecipes, setTags }) => {
     useEffect(() => {
         const controller = new AbortController();
 
+        const requestId = ++activeSearchId.current;
+
         const timer = setTimeout(() => {
-            searchMeals(searchTerm, controller.signal);
+            searchMeals(searchTerm, controller.signal, requestId);
         }, 300);
 
         return () => {
