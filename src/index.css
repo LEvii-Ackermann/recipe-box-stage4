@@ -492,9 +492,6 @@ button:hover {
     grid-template-columns: repeat(4, 1fr);
   }
 
-  .stats-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
 }
 
 @media (max-width: 800px) {
@@ -506,7 +503,6 @@ button:hover {
     grid-column: auto;
   }
 
-  .stats-grid,
   .planner-grid {
     grid-template-columns: repeat(2, 1fr);
   }
